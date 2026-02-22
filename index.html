@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>CatTap</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Game Canvas -->
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- Score Display -->
+  <div id="scoreDisplay">0</div>
+
+  <!-- Timer Display -->
+  <div id="timerDisplay" class="hidden">60</div>
+
+  <!-- Mode Indicators -->
+  <div id="modeIndicator" class="hidden"></div>
+
+  <!-- Game Over Overlay -->
+  <div id="gameOver" class="hidden">
+    <div class="game-over-content">
+      <div class="game-over-title">Time's Up!</div>
+      <div class="game-over-score">Score: <span id="finalScore">0</span></div>
+      <button id="playAgainBtn">Play Again</button>
+    </div>
+  </div>
+
+  <!-- Settings Button -->
+  <button id="settingsBtn" class="hidden" aria-label="Settings">⚙️</button>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="hidden">
+    <div class="modal-content">
+      <h2>Settings</h2>
+
+      <label>
+        Mode
+        <select id="settingMode">
+          <option value="laser">Laser (Red Dot)</option>
+          <option value="bug">Bug (Colorful)</option>
+        </select>
+      </label>
+
+      <label>
+        Difficulty
+        <select id="settingDifficulty">
+          <option value="slow">Slow</option>
+          <option value="medium" selected>Medium</option>
+          <option value="fast">Fast</option>
+        </select>
+      </label>
+
+      <label>
+        Trail Intensity
+        <select id="settingTrail">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+      </label>
+
+      <label>
+        Background
+        <select id="settingBackground">
+          <option value="dark" selected>Dark Carpet</option>
+          <option value="light">Light Tile</option>
+        </select>
+      </label>
+
+      <label>
+        Target Size
+        <select id="settingSize">
+          <option value="large" selected>Large</option>
+          <option value="xlarge">Extra Large</option>
+        </select>
+      </label>
+
+      <label class="toggle-label">
+        Sound
+        <input type="checkbox" id="settingSound">
+        <span class="toggle-switch"></span>
+      </label>
+
+      <label class="toggle-label">
+        Vibration
+        <input type="checkbox" id="settingVibration">
+        <span class="toggle-switch"></span>
+      </label>
+
+      <label class="toggle-label">
+        Session Timer (60s)
+        <input type="checkbox" id="settingTimer">
+        <span class="toggle-switch"></span>
+      </label>
+
+      <p class="hint">Hold 3 fingers for 2s to lock/unlock UI</p>
+      <button id="closeSettings">Close</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
