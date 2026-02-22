@@ -193,7 +193,7 @@
   /* ===== Movement Logic ===== */
   var lastTime = 0;
 
-  function updatePrey(dt) {
+  function updatePrey(dt, timestamp) {
     if (!gameRunning) return;
 
     var speed = speedMap[settings.difficulty];
@@ -258,7 +258,7 @@
     var ay = (dy / dist) * accel;
 
     /* Add perpendicular jitter for curves */
-    var jitter = Math.sin(Date.now() * JITTER_FREQUENCY) * speed * JITTER_AMPLITUDE;
+    var jitter = Math.sin(timestamp * JITTER_FREQUENCY) * speed * JITTER_AMPLITUDE;
     ax += (-dy / dist) * jitter;
     ay += (dx / dist) * jitter;
 
@@ -506,7 +506,7 @@
     var dt = Math.min((timestamp - lastTime) / 1000, MAX_FRAME_TIME);
     lastTime = timestamp;
 
-    updatePrey(dt);
+    updatePrey(dt, timestamp);
     updateTrail();
     updateBursts(dt);
 
@@ -606,8 +606,15 @@
     settingsOpen = false;
   });
 
-  /* Prevent taps inside modal from reaching game */
-  settingsModal.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
+  /* Prevent taps inside modal from reaching game; close on backdrop click */
+  settingsModal.addEventListener("pointerdown", function (e) {
+    if (e.target === settingsModal) {
+      applySettings();
+      settingsModal.classList.add("hidden");
+      settingsOpen = false;
+    }
+    e.stopPropagation();
+  });
   settingsModal.addEventListener("touchstart", function (e) { e.stopPropagation(); }, { passive: true });
 
   function applySettings() {
@@ -638,6 +645,39 @@
     } else if (!settings.timer && timerActive) {
       stopTimer();
     }
+
+    saveSettings();
+  }
+
+  /* ===== Settings Persistence ===== */
+  function saveSettings() {
+    try {
+      localStorage.setItem("cattap_settings", JSON.stringify(settings));
+    } catch (e) { /* ignore storage errors */ }
+  }
+
+  function loadSettings() {
+    try {
+      var data = localStorage.getItem("cattap_settings");
+      if (data) {
+        var parsed = JSON.parse(data);
+        for (var key in parsed) {
+          if (Object.prototype.hasOwnProperty.call(settings, key)) {
+            settings[key] = parsed[key];
+          }
+        }
+      }
+    } catch (e) { /* ignore storage errors */ }
+
+    /* Sync UI controls with loaded settings */
+    settingMode.value = settings.mode;
+    settingDifficulty.value = settings.difficulty;
+    settingTrail.value = settings.trail;
+    settingBackground.value = settings.background;
+    settingSize.value = settings.targetSize;
+    settingSound.checked = settings.sound;
+    settingVibration.checked = settings.vibration;
+    settingTimer.checked = settings.timer;
   }
 
   /* ===== Timer ===== */
@@ -692,6 +732,7 @@
 
   /* ===== Initialization ===== */
   function init() {
+    loadSettings();
     applyTheme();
     placeObstacle();
     initPrey();
@@ -700,6 +741,11 @@
 
     /* UI lock default: settings hidden */
     settingsBtn.classList.add("hidden");
+
+    /* Start timer if setting was persisted */
+    if (settings.timer) {
+      startTimer();
+    }
 
     lastTime = 0;
     animationId = requestAnimationFrame(gameLoop);
