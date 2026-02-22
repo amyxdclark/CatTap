@@ -49,6 +49,11 @@
     timer: false
   };
 
+  /* ===== Constants ===== */
+  var MAX_FRAME_TIME = 0.05;
+  var JITTER_FREQUENCY = 0.003;
+  var JITTER_AMPLITUDE = 30;
+
   /* ===== Difficulty Speed Map ===== */
   var speedMap = { slow: 1.5, medium: 3, fast: 5 };
   var trailMap = { low: 5, medium: 12, high: 24 };
@@ -253,7 +258,7 @@
     var ay = (dy / dist) * accel;
 
     /* Add perpendicular jitter for curves */
-    var jitter = Math.sin(Date.now() * 0.003) * speed * 30;
+    var jitter = Math.sin(Date.now() * JITTER_FREQUENCY) * speed * JITTER_AMPLITUDE;
     ax += (-dy / dist) * jitter;
     ay += (dx / dist) * jitter;
 
@@ -422,14 +427,16 @@
   }
 
   function drawPrey() {
-    if (prey.phase === "hiding") {
-      /* Peek: partially visible */
+    /* When hiding, only show the part of the prey outside the obstacle */
+    if (prey.phase === "hiding" && obstacle.visible) {
       ctx.save();
       ctx.beginPath();
-      ctx.rect(0, 0, W, H);
-      ctx.rect(obstacle.x, obstacle.y, obstacle.w, obstacle.h);
-      /* We draw the prey but clip outside obstacle area for a peek effect */
-      ctx.restore();
+      /* Clip to everything except the obstacle interior */
+      ctx.rect(0, 0, W, obstacle.y);
+      ctx.rect(0, obstacle.y, obstacle.x, obstacle.h);
+      ctx.rect(obstacle.x + obstacle.w, obstacle.y, W - obstacle.x - obstacle.w, obstacle.h);
+      ctx.rect(0, obstacle.y + obstacle.h, W, H - obstacle.y - obstacle.h);
+      ctx.clip();
     }
 
     /* Glow */
@@ -474,6 +481,11 @@
         ctx.stroke();
       }
     }
+
+    /* Restore clipping if in hiding phase */
+    if (prey.phase === "hiding" && obstacle.visible) {
+      ctx.restore();
+    }
   }
 
   function drawBursts() {
@@ -491,7 +503,7 @@
   /* ===== Main Loop ===== */
   function gameLoop(timestamp) {
     if (!lastTime) lastTime = timestamp;
-    var dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+    var dt = Math.min((timestamp - lastTime) / 1000, MAX_FRAME_TIME);
     lastTime = timestamp;
 
     updatePrey(dt);
@@ -551,13 +563,6 @@
     e.preventDefault();
     handleTap(e.clientX, e.clientY);
   });
-
-  canvas.addEventListener("touchstart", function (e) {
-    e.preventDefault();
-    for (var i = 0; i < e.changedTouches.length; i++) {
-      handleTap(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
-    }
-  }, { passive: false });
 
   /* ===== 3-Finger Lock Toggle ===== */
   var threeFingerStart = 0;
